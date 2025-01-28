@@ -1,4 +1,4 @@
-import type { APIOptions } from "~/types/api";
+import type { APIOptions } from "../types/api";
 
 export class SuggestService {
   #apiURL = import.meta.env.ENV_AUTO_SUGGEST_SERVER_URL
