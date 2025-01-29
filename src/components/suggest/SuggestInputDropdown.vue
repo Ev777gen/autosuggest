@@ -7,11 +7,11 @@
       :aria-label="label"
     >
       <li
-        v-for="(item, index) in suggestions"
+        v-for="({ item, id }, index) in suggestions"
         :key="item.alias + index"
-        :id="item.id"
+        :id="id"
         class="dropdown__item"
-        :class="{ 'highlighted': activeIndex === index }"
+        :class="{ 'highlighted': highlightedIndex === index }"
         role="option"
         @click="selectItem(item)"
         @mouseenter="onItemHover(index)"
@@ -38,7 +38,7 @@ import SuggestInputDropdownItem from "./SuggestInputDropdownItem.vue";
 
 const props = defineProps<{
   suggestions: SuggestDropdownItem[]
-  activeIndex: number
+  highlightedIndex: number
   dropdownId: string
   label: string
   isSuggestionsEmpty: boolean
@@ -52,7 +52,7 @@ const emit = defineEmits<{
 
 const isEmptyPlaceholderVisible = computed(() => {
   if (props.suggestions.length && props.isSuggestionsEmpty)
-    throw new Error('Unexpected behavior. You should not provide isSuggestionsEmpty prop when you have suggestions');
+    throw new Error('Unexpected behavior. You should provide isSuggestionsEmpty prop only if you get empty suggestions array');
 
   return props.isSuggestionsEmpty;
 })

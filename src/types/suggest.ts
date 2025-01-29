@@ -12,8 +12,9 @@ export interface SuggestItem {
   avatar?: string;
 }
 
-export interface SuggestDropdownItem extends SuggestItem {
+export interface SuggestDropdownItem {
   id: string;
+  item: SuggestItem;
 }
 
 export interface SuggestResponce {

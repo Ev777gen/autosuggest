@@ -4,7 +4,7 @@
       <span v-if="!isOptional" class="label__asterisk">* </span>
       <span class="label__text">{{ label }}</span>
     </label>
-    <div class="suggest__input-wrapper">
+    <div class="suggest__input-wrapper" v-click-outside="closeDropdown">
       <div v-if="selectedTags.length" class="suggest__tags">
         <SuggestInputTag
           v-for="(tag, index) in selectedTags"
@@ -34,7 +34,7 @@
     <SuggestInputDropdown 
       v-if="hasSuggestions || isSuggestionsEmpty"
       :suggestions="suggestionsDS"
-      :activeIndex="highlightedIndex"
+      :highlighted-index="highlightedIndex"
       :dropdown-id="dropdownId"
       :label="label"
       :is-suggestions-empty="isSuggestionsEmpty"
@@ -97,10 +97,10 @@ const isSearchAllowed = computed(() => {
 });
 
 const suggestionsDS = computed<SuggestDropdownItem[]>(() => {
-  return suggestions.value.map((option, index) => {
+  return suggestions.value.map((item, index) => {
     return {
-      ...option,
       id: generateOptionId(index),
+      item,
     };
   });
 });
@@ -185,8 +185,7 @@ function onKeyDown(e: KeyboardEvent): void {
       break;
 
     case 'Escape':
-      resetSuggestions();
-      removeHighlight();
+      closeDropdown();
       break;
   
     default:
@@ -198,7 +197,15 @@ function highlightOption(index: number): void {
   highlightedIndex.value = index;
 }
 
-function removeHighlight(): void {
+function closeDropdown() {
+  if (!suggestions.value.length)
+    return;
+
+  resetSuggestions();
+  resetHighlight();
+}
+
+function resetHighlight(): void {
   highlightedIndex.value = -1;
 }
 

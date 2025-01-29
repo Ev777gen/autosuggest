@@ -23,12 +23,12 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { SUGGEST_ITEM_TYPES, type SuggestDropdownItem } from '../../types/suggest';
+import { SUGGEST_ITEM_TYPES, type SuggestItem } from '../../types/suggest';
 import avatarCompanySVG from '/img/icons/avatar-company.svg?raw';
 import avatarUserSVG from '/img/icons/avatar-user.svg?raw';
 
 const props = withDefaults(defineProps<{
-  item: SuggestDropdownItem
+  item: SuggestItem
   placeholderAvatarSrc?: string
   altText?: string
 }>(), {
