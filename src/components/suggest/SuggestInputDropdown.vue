@@ -21,7 +21,7 @@
         />
       </li>
       <li
-        v-if="isEmptyPlaceholderVisible"
+        v-if="!suggestions.length"
         class="dropdown__item_empty"
       >
         По вашему запросу ничего не найдено
@@ -32,16 +32,14 @@
 
 
 <script setup lang="ts">
-import { computed } from 'vue';
 import type { SuggestDropdownItem, SuggestItem } from '../../types/suggest';
 import SuggestInputDropdownItem from "./SuggestInputDropdownItem.vue";
 
-const props = defineProps<{
+defineProps<{
   suggestions: SuggestDropdownItem[]
   highlightedIndex: number
   dropdownId: string
   label: string
-  isSuggestionsEmpty: boolean
 }>();
 
 const emit = defineEmits<{
@@ -50,18 +48,11 @@ const emit = defineEmits<{
   (e: 'scroll:down'): void
 }>();
 
-const isEmptyPlaceholderVisible = computed(() => {
-  if (props.suggestions.length && props.isSuggestionsEmpty)
-    throw new Error('Unexpected behavior. You should provide isSuggestionsEmpty prop only if you get empty suggestions array');
-
-  return props.isSuggestionsEmpty;
-})
-
 function onItemHover(index: number): void {
   emit('item:hover', index);
 }
 
-function selectItem(item: SuggestItem) {
+function selectItem(item: SuggestItem): void {
   emit('select', item);
 }
 </script>

@@ -32,12 +32,11 @@
       />
     </div>
     <SuggestInputDropdown 
-      v-if="hasSuggestions || isSuggestionsEmpty"
+      v-if="hasSuggestions"
       :suggestions="suggestionsDS"
       :highlighted-index="highlightedIndex"
       :dropdown-id="dropdownId"
       :label="label"
-      :is-suggestions-empty="isSuggestionsEmpty"
       class="suggest__dropdown"
       @select="selectSuggestion"
       @item:hover="highlightOption"
@@ -75,34 +74,33 @@ const emit = defineEmits<{
   (e: 'update:state', payload: SuggestNotification): void
 }>();
 
-const query = ref('');
-const suggestions = ref<SuggestItem[]>([]);
+const query = ref<string>('');
+const suggestions = ref<SuggestItem[] | null>(null);
 const selectedTags = ref<SuggestItem[]>([]);
-const isLoading = ref(false);
-const error = ref('');
-const isSuggestionsEmpty = ref<boolean>(false);
-const highlightedIndex = ref(-1);
+const isLoading = ref<boolean>(false);
+const error = ref<string>('');
+const highlightedIndex = ref<number>(-1);
 const INPUT_ID_PREFIX = 'suggest-input';
 const DROPDOWN_ID_PREFIX = 'suggestions-dropdown';
 const OPTION_ID_PREFIX = 'dropdown-item';
 const inputId: string = generateId(INPUT_ID_PREFIX);
 const dropdownId: string = generateId(DROPDOWN_ID_PREFIX);
 
-const hasSuggestions = computed(() => {
-  return suggestions.value.length > 0;
+const hasSuggestions = computed<boolean>(() => {
+  return Boolean(suggestions.value);
 });
 
-const isSearchAllowed = computed(() => {
+const isSearchAllowed = computed<boolean>(() => {
   return selectedTags.value.length < props.maxSelections;
 });
 
 const suggestionsDS = computed<SuggestDropdownItem[]>(() => {
-  return suggestions.value.map((item, index) => {
+  return suggestions.value?.map((item, index) => {
     return {
       id: generateOptionId(index),
       item,
     };
-  });
+  }) || [];
 });
 
 const activeOptionId = computed<string>(() => {
@@ -120,13 +118,9 @@ async function getSuggestionsCallback(): Promise<void> {
 
   isLoading.value = true;
   error.value = '';
-  isSuggestionsEmpty.value = false;
   try {
     const data = await suggestController.getSuggestions(query.value);
     suggestions.value = data ?? [];
-
-    if (!suggestions.value.length)
-      isSuggestionsEmpty.value = true;
       
     emit('update:state', { state: SUGGEST_STATES.opened });
   } 
@@ -163,6 +157,9 @@ function generateOptionId(index: number): string {
 }
 
 function onKeyDown(e: KeyboardEvent): void {
+  if (!suggestions.value)
+    return
+
   switch (e.key) {
     case 'ArrowDown':
       if (!suggestions.value.length) 
@@ -197,8 +194,8 @@ function highlightOption(index: number): void {
   highlightedIndex.value = index;
 }
 
-function closeDropdown() {
-  if (!suggestions.value.length)
+function closeDropdown(): void {
+  if (!suggestions.value)
     return;
 
   resetSuggestions();
@@ -210,7 +207,8 @@ function resetHighlight(): void {
 }
 
 function resetSuggestions(notify: boolean = true): void {
-  suggestions.value = [];
+  suggestions.value = null;
+  
   if (notify)
     emit('update:state', { state: SUGGEST_STATES.initial });
 }
