@@ -52,9 +52,9 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { suggestController } from '../../js/SuggestController';
+import { SuggestController } from '../../ts/SuggestController';
 import { debounce } from '../../utils/debounce';
-import { SUGGEST_STATES, type SuggestDropdownItem, type SuggestItem, type SuggestNotification } from '../../types/suggest';
+import type { SuggestDropdownItem, SuggestItem } from '../../types/suggest';
 import SuggestInputTag from './SuggestInputTag.vue';
 import SuggestInputDropdown from './SuggestInputDropdown.vue';
 
@@ -71,8 +71,10 @@ const props = withDefaults(defineProps<{
 });
 
 const emit = defineEmits<{
-  (e: 'update:state', payload: SuggestNotification): void
+  (e: 'update:state', payload: SuggestItem[]): void
 }>();
+
+const suggestController = new SuggestController();
 
 const query = ref<string>('');
 const suggestions = ref<SuggestItem[] | null>(null);
@@ -112,8 +114,9 @@ const activeOptionId = computed<string>(() => {
 const REQUEST_DELAY = 300;
 const getSuggestions = debounce(getSuggestionsCallback, REQUEST_DELAY);
 
+const MIN_CHARACTERS_ENTERED = 3
 async function getSuggestionsCallback(): Promise<void> {
-  if (query.value.length < 3)
+  if (query.value.length < MIN_CHARACTERS_ENTERED)
     return;
 
   isLoading.value = true;
@@ -121,8 +124,6 @@ async function getSuggestionsCallback(): Promise<void> {
   try {
     const data = await suggestController.getSuggestions(query.value);
     suggestions.value = data ?? [];
-      
-    emit('update:state', { state: SUGGEST_STATES.opened });
   } 
   catch (err: any) {
     error.value = err.message || 'Неизвестная ошибка';
@@ -136,16 +137,18 @@ function selectSuggestion(item: SuggestItem): void {
   if (selectedTags.value.length < props.maxSelections) {
     selectedTags.value.push(item);
     query.value = '';
-    resetSuggestions(false);
-    emit('update:state', { state: SUGGEST_STATES.selected, tags: selectedTags.value });
+    resetSuggestions();
+    notifyParent();
   }
 }
 
 function removeTag(index: number): void {
   selectedTags.value.splice(index, 1);
-  
-  if (!selectedTags.value.length)
-    emit('update:state', { state: SUGGEST_STATES.initial });
+  notifyParent();
+}
+
+function notifyParent() {
+  emit('update:state', selectedTags.value);
 }
 
 function generateId(prefix: string): string {
@@ -206,11 +209,8 @@ function resetHighlight(): void {
   highlightedIndex.value = -1;
 }
 
-function resetSuggestions(notify: boolean = true): void {
+function resetSuggestions(): void {
   suggestions.value = null;
-  
-  if (notify)
-    emit('update:state', { state: SUGGEST_STATES.initial });
 }
 </script>
 

@@ -1,25 +1,20 @@
-import type { APIOptions } from "../types/api";
-
 export class SuggestService {
   #apiURL = import.meta.env.ENV_AUTO_SUGGEST_SERVER_URL
   #abortController: AbortController | null = null
 
-  constructor(options?: Partial<APIOptions>) {
-    if (options?.apiURL)
-      this.#apiURL = options.apiURL;
-  }
+  constructor() {}
 
   private get _isPreviousRequestNotCompleted(): boolean {
     return Boolean(this.#abortController);
   }
 
-  public async getSuggestions<T>(query: string, apiURL?: string): Promise<T | undefined> {
+  public async getSuggestions<T>(query: string): Promise<T | undefined> {
     if (this._isPreviousRequestNotCompleted)
       this.#abortController!.abort();
 
     this.#abortController = new AbortController();
 
-    const url = `${apiURL ?? this.#apiURL}?q=${encodeURIComponent(query)}`;
+    const url = `${this.#apiURL}?q=${encodeURIComponent(query)}`;
     try {
       const response = await fetch(url, { signal: this.#abortController.signal });
       if (!response.ok) {

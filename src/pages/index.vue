@@ -2,7 +2,7 @@
   <div class="page">
     <main class="page__content">
       <SuggestInput
-        @update:state="(evt: SuggestNotification) => console.log(evt)"
+        @update:state="(selectedSuggestions: SuggestItem[]) => { console.log(selectedSuggestions) }"
       />
     </main>
   </div>
@@ -10,7 +10,7 @@
 
 <script setup lang="ts">
 import SuggestInput from "../components/suggest/SuggestInput.vue";
-import type { SuggestNotification } from "../types/suggest";
+import type { SuggestItem } from "../types/suggest";
 </script>
 
 <style lang="scss" scoped>
